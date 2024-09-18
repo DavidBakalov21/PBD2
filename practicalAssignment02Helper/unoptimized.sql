@@ -1,19 +1,19 @@
+USE Assignment1;
 
-USE Assignment2;
-SELECT 
+SELECT DISTINCT
     c.name,
     c.surname,
     c.email,
     c.phone,
     c.address,
-    p.product_name,
-    p.product_price,
-    p.product_category,
-    p.description,
-    co.order_timestamp,
-    (SELECT COUNT(*) FROM client_order WHERE client_order.user_id = c.user_id) AS total_orders,
-    (SELECT SUM(product_price) FROM product WHERE product_category = 'furniture') AS total_furniture_value,
-    (SELECT MAX(order_timestamp) FROM client_order WHERE user_id = c.user_id) AS last_order_time
+    (SELECT COUNT(*) 
+     FROM client_order co_sub 
+     WHERE co_sub.user_id = c.user_id) AS total_orders,
+    (SELECT SUM(p_sub.product_price) 
+     FROM product p_sub 
+     JOIN client_order co_sub ON co_sub.product_id = p_sub.product_id 
+     WHERE co_sub.user_id = c.user_id 
+     AND p_sub.product_category = 'furniture') AS total_furniture_spent
 FROM 
     client_order co
 JOIN 
@@ -26,10 +26,8 @@ LEFT JOIN
     product p2 ON p2.product_id = p.product_id  -- unnecessary self join
 WHERE 
     p.product_category = 'furniture'
-    AND (p.product_price > 1000 OR p.product_price < 100)  -- Inefficient filtering with OR
-    AND LENGTH(c.phone) > 10  -- Unnecessary length check
-    AND c.surname LIKE 'A%'  -- Additional filter for surname starting with 'A'
+    AND (p.product_price > 1000 OR p.product_price < 100)
+    AND LENGTH(c.phone) > 10
+    AND c.surname LIKE 'A%'
 ORDER BY 
-    c.surname ASC,
-    p.product_price DESC,
-    co.order_timestamp DESC;
+    c.surname ASC;
